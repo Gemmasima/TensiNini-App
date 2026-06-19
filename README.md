@@ -27,7 +27,7 @@ En desarrollo activo
  ## ✅ Funcionalidades previstas
 - [ ] Registro y login: Gestión de acceso para el paciente.
 - [ ] Registro de medición: 3 tomas consecutivas (obligatorias), separadas por un temporizador de 2 minutos. La tercera medición se toma como el valor válido.
-- [ ] Datos de registro: Tensión sistólica, diastólica, pulso, franja del día (Mañana/Noche) y estado emocional (Tranquila / Nerviosa / Enfadada).
+- [ ] Datos de registro: Tensión sistólica, diastólica, pulso, franja del día (Mañana/Noche) y estado emocional.
 - [ ] Estado emocional de cada medición (tranquila / nerviosa / enfadada).
 - [ ] Historial y Recordatorios: Listado completo de mediciones y alertas programadas 2 veces al día (Mañana y Noche).
 - [ ] Estadísticas semanales y mensuales, coloreadas por estado emocional.
@@ -49,7 +49,7 @@ Actively in development — currently working on the data model and backend.
 ## ✅ Planned features
 - [ ] Registration and login: Access management for the patient.
 - [ ] Measurement recording: 3 consecutive readings (mandatory), separated by a 2-minute timer. The third measurement is taken as the valid value.
-- [ ] Recorded data: Systolic and diastolic blood pressure, pulse, time of day (Morning/Night), and emotional state (Calm / Nervous / Angry).
+- [ ] Recorded data: Systolic and diastolic blood pressure, pulse, time of day (Morning/Night), and emotional state.
 - [ ] Emotional state for each measurement (calm / nervous / angry).
 - [ ] History and Reminders: Full list of measurements and alerts scheduled twice a day (Morning and Night).
 - [ ] Weekly and monthly statistics, color-coded by emotional state.
