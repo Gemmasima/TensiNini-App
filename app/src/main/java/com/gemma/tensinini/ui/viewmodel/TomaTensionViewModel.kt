@@ -10,53 +10,72 @@ import com.gemma.tensinini.dao.TomaTensionDAO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel que controla todo el flujo de una sesión de medición:
+ * el número de toma en curso, el temporizador obligatorio de 2 minutos entre
+ * tomas y el guardado final del registro en la BD.
+ * Sigue el protocolo médico de 3 tomas consecuticas espaciadas, donde la tercera
+ * toma es la que se considera válida.
+ */
 class TomaTensionViewModel (private val dao: TomaTensionDAO) : ViewModel() {
 
-    /* Controla si toca la toma 1, 2 o 3. Usa "by mutableStateOf" para que, cuando el número cambie
-    ** en el código, la pantalla del móvil se actualice sola visualmente.
-    ** El "private set" impide que se pueda modificar este número por error desde fuera de este archivo.*/
+    /**
+     * Indica si toca realizar la toma 1, 2 o 3.
+     * Se usa "by mutableSatateOf" para que, cuando el número cambie, la pantalla
+     * se actualice automáticamente.
+     * "private set" impide que se modifique desde fuera de esta clase.
+     */
     var tomaActual by mutableStateOf(1)
         private set
 
-    // Guarda los segundos que quedan de espera (empieza en 0) y avisa a la pantalla si cambia
+    /**
+     * Segundos restantes de la cuenta atrás entre tomas.
+     * Empieza en 0 y avisa a la pantalla cada vez que cambia.
+     */
     var segundosRestantes by mutableStateOf(0)
-        // Impide que se pueda modificar este número desde fuera de este archivo
         private set
 
-    // Guarda si el usuario está esperando activamente (falso al principio) y avisa a la pantalla
+    /**
+     * Indica si la app está actualmente en período de espera obligatoria.
+     */
     var esperandoTiempo by mutableStateOf(false)
-        // Impide que se pueda modificar este número desde fuera de este archivo
         private set
 
-    // Define la función para activar la cuenta atrás obligatoria de 2 minutos
+    /**
+     * Activa la cuenta atrás obligatoria de 2 minutos entre tomas.
+     * Al finalizar, avanza automáticamente a la siguiente toma.
+     */
     fun iniciarTemporizador() {
-        // Cambia el estado a verdadero para que la pantalla sepa que toca esperar
         esperandoTiempo = true
-        // Asigna los 120 segundos obligatorios (que equivalen a los 2 minutos)
-        segundosRestantes = 120
-        // Abre un hilo de ejecución en segundo plano para que la app no se quede congelada
+        segundosRestantes = 120 //120 segundos
+
+        //Pátron corrutina en segundo plano para no bloquear la interfaz mientas se cuenta.
         viewModelScope.launch {
-            // Ejecuta este bucle de código de forma repetitiva mientras queden segundos en el contador
             while (segundosRestantes > 0) {
-                // Pausa la ejecución exactamente durante 1000 milisegundos (es decir, 1 segundo)
-                delay(1000)
-                // Resta un segundo al contador de segundos restantes
+                delay(1000) //Pausa de 1 segundo en cada interación
                 segundosRestantes--
             }
             // Cambia el estado a falso porque la cuenta atrás de 2 minutos ya ha terminado
             esperandoTiempo = false
-            // Suma uno al contador de tomas para pasar automáticamente a la siguiente medición
-            tomaActual++
+            tomaActual++ //Suma 1 y avanza automaticamente a la siguiente toma.
         }
     }
 
-    // Define la función para guardar el registro final con los datos en la base de datos
+    /**
+     * Guarda en la DB el registro completo de las 3 tomas y resetea el contador
+     * para dejar la app lista para la siguiente sesión.
+     *
+     * @param medicion Registro completo de la sesión, con las 3 tomas incluidas.
+     */
     fun guardarMedicion(medicion: TomaTension) {
-        // Abre un hilo de ejecución seguro en segundo plano para operar con la base de datos
         viewModelScope.launch {
             // Llama a la base de datos y le ordena insertar la fila con todos los datos recogidos
             dao.insertarToma(medicion)
-            // Resetea el contador al número 1 para dejar la app lista para la siguiente sesión
+            /**
+             * La sesión actual (3 tomas) ya está guardada por completo. Se reinicia a 1 para que
+             * si el usuario inicia otra sesión más tarde, la app empiece d enuevo por la toma 1
+             * en esa nueva sesión.
+             */
             tomaActual = 1
         }
     }

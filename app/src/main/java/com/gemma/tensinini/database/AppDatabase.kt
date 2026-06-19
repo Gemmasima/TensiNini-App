@@ -5,10 +5,14 @@ import androidx.room.RoomDatabase
 import com.gemma.tensinini.dao.TomaTensionDAO
 import com.gemma.tensinini.data.TomaTension
 
-// Le digo a Room qué tablas tiene la BD y la versión
+/**
+ * Punto de entrada a la base de datos local Room.
+ * Aquí se declaran todas las entidades (tablas) que maneja la app.
+ * y la versión del schema, necesaria para futuras migraciones.
+ */
 @Database(entities = [TomaTension::class], version=1 )
 abstract class AppDatabase : RoomDatabase () {
 
-    //Conecto la BD con el DAO para poder usar las consultas
+    //Conecta la BD con el DAO para poder ejecutar las consultas
     abstract fun tomaTensionDAO(): TomaTensionDAO
 }
