@@ -4,44 +4,134 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.gemma.tensinini.ui.theme.TensininiTheme
+import com.gemma.tensinini.util.ControlHorario
 
+/**
+ * Actividad principal de la aplicación. Punto de entrada único que aloja
+ * el grafo de navegación de Compose y gestiona el acceso a las pantallas
+ * según el horario válido del protocolo médico.
+ */
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             TensininiTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                AppNavigation()
             }
         }
     }
 }
 
+/**
+ * Grafo de navegación principal de la aplicación.
+ *
+ * Define dos rutas:
+ * - [RUTA_INICIO]: pantalla de bienvenida con el botón para iniciar una sesión de medición.
+ * - [RUTA_MEDICION]: pantalla de medición de tensión arterial (3 tomas + emoción final).
+ *
+ * La navegación hacia [RUTA_MEDICION] está bloqueada fuera del horario válido del protocolo
+ * médico (MAÑANA 7:00-11:00, NOCHE 20:00-00:00). Si el paciente intenta acceder fuera de
+ * esa franja, se muestra un diálogo informativo y no se produce la navegación.
+ */
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
+fun AppNavigation() {
+    val navController = rememberNavController()
+    var mostrarDialogoHorario by remember { mutableStateOf(false) }
+
+    NavHost(
+        navController = navController,
+        startDestination = RUTA_INICIO
+    ) {
+        composable(RUTA_INICIO) {
+            PantallaInicio(
+                onIniciarMedicion = {
+                    if (ControlHorario.esHorarioValido()) {
+                        navController.navigate(RUTA_MEDICION)
+                    } else {
+                        mostrarDialogoHorario = true
+                    }
+                }
+            )
+        }
+
+        composable(RUTA_MEDICION) {
+            // PantallaMedicion() — se implementará en el siguiente archivo
+            Text(text = "Pantalla de medición — próximamente")
+        }
+    }
+
+    if (mostrarDialogoHorario) {
+        DialogoHorarioInvalido(
+            onDismiss = { mostrarDialogoHorario = false }
+        )
+    }
+}
+
+/**
+ * Pantalla de inicio con el botón para comenzar una sesión de medición.
+ *
+ * @param onIniciarMedicion Callback que se ejecuta cuando el paciente pulsa
+ *                          el botón de iniciar medición.
+ */
+@Composable
+fun PantallaInicio(onIniciarMedicion: () -> Unit) {
+    androidx.compose.foundation.layout.Box(
+        modifier = androidx.compose.ui.Modifier.fillMaxSize(),
+        contentAlignment = androidx.compose.ui.Alignment.Center
+    ) {
+        androidx.compose.material3.Button(onClick = onIniciarMedicion) {
+            Text(text = "Iniciar medición")
+        }
+    }
+}
+
+/**
+ * Diálogo informativo que se muestra cuando el paciente intenta iniciar una
+ * sesión de medición fuera del horario válido del protocolo médico.
+ *
+ * Informa de las franjas horarias permitidas y bloquea el acceso a la pantalla
+ * de medición hasta que el paciente cierre el diálogo.
+ *
+ * @param onDismiss Callback que se ejecuta cuando el paciente cierra el diálogo.
+ */
+@Composable
+fun DialogoHorarioInvalido(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Fuera de horario") },
+        text = {
+            Text(
+                text = "Las mediciones solo pueden realizarse en los siguientes horarios:\n\n" +
+                        "• Mañana: 7:00 — 11:00\n" +
+                        "• Noche: 20:00 — 00:00\n\n" +
+                        "Por favor, vuelva a intentarlo dentro de esa franja horaria."
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = "Entendido")
+            }
+        }
     )
 }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TensininiTheme {
-        Greeting("Android")
-    }
-}
+/** Ruta de navegación para la pantalla de inicio. */
+private const val RUTA_INICIO = "inicio"
+
+/** Ruta de navegación para la pantalla de medición. */
+private const val RUTA_MEDICION = "medicion"

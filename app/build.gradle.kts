@@ -67,4 +67,6 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     // DataStore para persistir el estado de la sesión de medición entre aperturas de la
     implementation ("androidx.datastore:datastore-preferences:1.1.1")
+    //Navigation Compose para gestionar la navegación entre pantallas
+    implementation("androidx.navigation:navigation-compose:2.7.7")
 }

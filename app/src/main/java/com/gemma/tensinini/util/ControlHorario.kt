@@ -18,7 +18,7 @@ import java.time.format.DateTimeFormatter
  * Fuera de esas ventanas no se considera una medición válida.
  */
 
-class ControlHorario {
+object ControlHorario {
 
     private val INICIO_MANANA = LocalTime.of(7,0)
     private val FIN_MANANA = LocalTime.of(11,0)
