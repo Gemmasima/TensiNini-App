@@ -65,4 +65,6 @@ dependencies {
     kapt("androidx.room:room-compiler:2.6.1")
     // Soporte de Room para Corrutinas (para hacer consultas sin congelar la pantalla)
     implementation("androidx.room:room-ktx:2.6.1")
+    // DataStore para persistir el estado de la sesión de medición entre aperturas de la
+    implementation ("androidx.datastore:datastore-preferences:1.1.1")
 }
