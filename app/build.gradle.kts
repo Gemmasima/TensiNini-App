@@ -60,11 +60,11 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     // Librería principal de Room para gestionar la base de datos SQLite
-    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-runtime:2.7.1")
     // Permite usar Kapt para procesar las anotaciones de Room en Kotlin
-    kapt("androidx.room:room-compiler:2.6.1")
+    kapt("androidx.room:room-compiler:2.7.1")
     // Soporte de Room para Corrutinas (para hacer consultas sin congelar la pantalla)
-    implementation("androidx.room:room-ktx:2.6.1")
+    implementation("androidx.room:room-ktx:2.7.1")
     // DataStore para persistir el estado de la sesión de medición entre aperturas de la
     implementation ("androidx.datastore:datastore-preferences:1.1.1")
     //Navigation Compose para gestionar la navegación entre pantallas
