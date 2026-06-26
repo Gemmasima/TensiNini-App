@@ -1,5 +1,6 @@
 package com.gemma.tensinini.ui
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -17,12 +18,11 @@ import androidx.compose.ui.unit.sp
  * las 3 tomas y seleccionado su estado emocional.
  */
 @Composable
-fun Pantallamedicion (
-    onSesionCompletada: () -> Unit ={}
+fun PantallaMedicion (
+    onSessioCompletada: () -> Unit ={}
 ) {
     val tomasRegistradas = remember {mutableStateOf(listOf<TomaResumen>())}
     var tomaActual by remember {mutableStateOf(1)}
-
     var sistolica by remember {mutableStateOf("")}
     var diastolica by remember {mutableStateOf("")}
     var pulso by remember {mutableStateOf("")}
@@ -34,7 +34,7 @@ fun Pantallamedicion (
             .padding(16.dp)
     ) {
         Text(
-            text="Sesión de medición",
+            text="Sessió de mesura",
             fontSize=20.sp,
             fontWeight=FontWeight.Medium
         )
@@ -42,7 +42,7 @@ fun Pantallamedicion (
         Spacer(modifier=Modifier.height(4.dp))
 
         Text(
-            text= "Introduzca los valores de cada toma con calma",
+            text= "Introdïu els valors de cada mesura amb calma",
             fontSize=14.sp,
             color= MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -77,8 +77,47 @@ fun Pantallamedicion (
     }
 }
 
-        /**
-         * Sección superior de la pantalla que muestra las tomas ya registradas
-         * en la sesión actual. Si no hay ninguna toma aún, muestra un mensaaje
-         * informativo
-         */
+/**
+ * Sección superior de la pantalla que muestra las tomas ya registradas
+ * en la sesión actual. Si no hay ninguna toma aún, muestra un mensaaje
+ * informativo
+ *
+ * @param tomas Listas de TomaResumen con los datos de las tomas completadas.
+ */
+@Composable
+fun HistorialTomas (tomas: List<TomaResumen>) {
+    Card(
+        Modifier=Modifier.fillMaxWidth(),
+        colors=CardDefaults.cardColors(
+            containerColor=MaterialTheme.colorScheme.sufaceVariant
+        )
+    ) {
+        Column(modifier=Modifier.padding(12.dp)) {
+            Text(
+                text="Mesures registrades",
+                fontSize=13.sp,
+                color=MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight=FontWeight.Medium
+            )
+            Spacer(modifier=Modifier.height(8.dp))
+
+            if(tomas.isEmpty()) {
+                Text(
+                    text="Encara no hi ha mesures registrades."
+                    fontSize=13.sp,
+                    color=MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                tomas.forEachIndexed {index,toma ->
+                    if (index>0) HorizontalDivider(modifier=Modifier.padding(vertical=4.dp))
+                    FilaToma(toma=toma)
+                }
+            }
+            repeat(3-tomas.size) {index ->
+                if (tomas.isNotEmpty() || index > 0) {
+                    HorizontalDivider(modifier=Modifier.padding(vertical=4.dp)
+                }
+            }
+        }
+    }
+}
