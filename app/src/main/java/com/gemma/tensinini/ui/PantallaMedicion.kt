@@ -23,12 +23,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 
 /**
  * Pantalla principal de medición de tensión arterial.
@@ -76,7 +78,7 @@ fun PantallaMedicion (
 
         if (tomaActual <=3) {
             FormularioToma(
-                numeroToma=tomaActual
+                numeroToma=tomaActual,
                 sistolica=sistolica,
                 diastolica=diastolica,
                 pulso=pulso,
@@ -85,7 +87,7 @@ fun PantallaMedicion (
                 onPulsoChange={pulso=it},
                 onGuardar={
                     tomasRegistradas.value=tomasRegistradas.value + TomaResumen(
-                        numero=tomaActual,
+                        numeroToma = tomaActual,
                         sistolica=sistolica,
                         diastolica=diastolica,
                         pulso=pulso
@@ -110,9 +112,9 @@ fun PantallaMedicion (
 @Composable
 fun HistorialTomas (tomas: List<TomaResumen>) {
     Card(
-        Modifier=Modifier.fillMaxWidth(),
+        modifier=Modifier.fillMaxWidth(),
         colors= CardDefaults.cardColors(
-            containerColor=MaterialTheme.colorScheme.sufaceVariant
+            containerColor=MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(modifier=Modifier.padding(12.dp)) {
@@ -126,29 +128,34 @@ fun HistorialTomas (tomas: List<TomaResumen>) {
 
             if(tomas.isEmpty()) {
                 Text(
-                    text="Encara no hi ha mesures registrades."
+                    text="Encara no hi ha mesures registrades.",
                     fontSize=13.sp,
                     color=MaterialTheme.colorScheme.onSurfaceVariant
                 )
             } else {
-                tomas.forEachIndexed {index,toma ->
-                    if (index>0) HorizontalDivider(modifier=Modifier.padding(vertical=4.dp))
-                    FilaToma(toma=toma)
+                tomas.forEachIndexed { index, toma ->
+                    if (index > 0) HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    FilaToma(toma = toma)
                 }
+            }
 
+            repeat(3 - tomas.size) { index ->
+                if (tomas.isNotEmpty() || index > 0) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                }
                 Row(
-                    modifier=Modifier.fillMaxWidth(),
-                    horizontalArrangement=Arrangement.SpaceBetween
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text="Mesura ${tomas.size+index+1}",
-                        fontsize=13.sp,
-                        color= MaterialTheme.colorScheme.onSurfaceVariant
+                        text = "Mesura ${tomas.size + index + 1}",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Text (
-                        text="..pendent"
-                        fontSize=13.sp,
-                        color=MaterialTheme.colorScheme.onsurfacceVariant
+                    Text(
+                        text = "— pendent",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -169,10 +176,10 @@ fun FilaToma(toma:TomaResumen) {
         verticalAlignment=Alignment.CenterVertically
     ){
         Text(
-            text="Mesura ${toma.numero}",
+            text="Mesura ${toma.numeroToma}",
             fontSize=13.sp,
-            fontWeoght=FontWeight.Medium,
-            color=MaterailTheme.colorScheme.onSurface
+            fontWeight=FontWeight.Medium,
+            color=MaterialTheme.colorScheme.onSurface
         )
         Text(
             text= "${toma.sistolica} / ${toma.diastolica} . ${toma.pulso} ppm",
@@ -222,7 +229,7 @@ fun FormularioToma(
 
             Row(
                 modifier=Modifier.fillMaxWidth(),
-                horizontalArrangement=Arrangement.spaceBy(8.dp)
+                horizontalArrangement=Arrangement.spacedBy(8.dp)
             ){
                 OutlinedTextField(
                     value=sistolica,
@@ -236,7 +243,7 @@ fun FormularioToma(
                     value=diastolica,
                     onValueChange=onDiastolicaChange,
                     label={Text("Diastólica")},
-                    keyboaerdOptions=KeyboardOptions(keyboardType= KeyboardType.Number),
+                    keyboardOptions=KeyboardOptions(keyboardType= KeyboardType.Number),
                     singleLine=true,
                     modifier=Modifier.weight(1f)
                 )
@@ -253,7 +260,7 @@ fun FormularioToma(
             Spacer(modifier=Modifier.height(12.dp))
             Button(
                 onClick=onGuardar,
-                enable=camposValidos,
+                enabled=camposValidos,
                 modifier=Modifier.fillMaxWidth()
             ) {
                 Text(text="Desar mesura $numeroToma")
