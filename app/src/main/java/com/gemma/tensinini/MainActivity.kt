@@ -70,8 +70,7 @@ fun AppNavigation() {
         }
 
         composable(RUTA_MEDICION) {
-            // PantallaMedicion() — se implementará en el siguiente archivo
-            Text(text = "Pantalla de medición — próximamente")
+            com.gemma.tensinini.ui.PantallaMedicion()
         }
     }
 
@@ -95,7 +94,7 @@ fun PantallaInicio(onIniciarMedicion: () -> Unit) {
         contentAlignment = androidx.compose.ui.Alignment.Center
     ) {
         androidx.compose.material3.Button(onClick = onIniciarMedicion) {
-            Text(text = "Iniciar medición")
+            Text(text = "Iniciar mesura")
         }
     }
 }
@@ -113,18 +112,18 @@ fun PantallaInicio(onIniciarMedicion: () -> Unit) {
 fun DialogoHorarioInvalido(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = "Fuera de horario") },
+        title = { Text(text = "Fora d'horari") },
         text = {
             Text(
-                text = "Las mediciones solo pueden realizarse en los siguientes horarios:\n\n" +
-                        "• Mañana: 7:00 — 11:00\n" +
-                        "• Noche: 20:00 — 00:00\n\n" +
-                        "Por favor, vuelva a intentarlo dentro de esa franja horaria."
+                text = "Les mesures només es poden realitzar en els horaris següents:\n\n" +
+                        "• Matí: 7:00 — 11:00\n" +
+                        "• Nit: 20:00 — 00:00\n\n" +
+                        "Si us plau, torneu-ho a intentar dins d'aquesta franja horària."
             )
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(text = "Entendido")
+                Text(text = "Entesos")
             }
         }
     )
