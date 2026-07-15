@@ -7,7 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemma.tensinini.data.TomaTension
 import com.gemma.tensinini.dao.TomaTensionDAO
+import com.gemma.tensinini.data.Emocion
+import com.gemma.tensinini.data.Franja
+import com.gemma.tensinini.data.SesionMedicionPreferences
+import com.gemma.tensinini.util.ControlHorario
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -17,7 +22,10 @@ import kotlinx.coroutines.launch
  * Sigue el protocolo médico de 3 tomas consecuticas espaciadas, donde la tercera
  * toma es la que se considera válida.
  */
-class TomaTensionViewModel (private val dao: TomaTensionDAO) : ViewModel() {
+class TomaTensionViewModel (
+    private val dao: TomaTensionDAO,
+    private val prefs: SesionMedicionPreferences
+) : ViewModel() {
 
     /**
      * Indica si toca realizar la toma 1, 2 o 3.
@@ -39,25 +47,83 @@ class TomaTensionViewModel (private val dao: TomaTensionDAO) : ViewModel() {
      * Indica si la app está actualmente en período de espera obligatoria.
      */
     var esperandoTiempo by mutableStateOf(false)
+    private set
+
+    /**
+     * Indica si toca mostrar la pantalla de selección de estado emocional,
+     * tras completar las 3 tomas.
+     */
+    var mostrarSeleccionEmocion by mutableStateOf(false)
         private set
+
+    private var fecha: String =""
+    private var franja: Franja? = null
+    private var hora1 = ""
+    private var sis1 = 0; private var dia1 = 0; private var pulso1 = 0
+    private var sis2 = 0; private var dia2 = 0; private var pulso2 =0
+    private var sis3 = 0; private var dia3 = 0; private var pulso3 =0
+
+    init {
+        viewModelScope.launch {
+            val tomaGuardada = prefs.tomaActual.first()
+            val timestampFin = prefs.timestampFinEspera.first()
+            when {
+                tomaGuardada in 1..3 -> {
+                    tomaActual = tomaGuardada
+                    val restanteMs = timestampFin - System.currentTimeMillis()
+                    if (restanteMs > 0) reanudarTemporizador(restanteMs)
+                }
+                tomaGuardada == 4 -> mostrarSeleccionEmocion = true
+            }
+        }
+    }
+
+    fun registrarToma (sistolica: Int, diastolica: Int, pulso: Int) {
+
+        val horaToma = ControlHorario.obtenerHoraActual ()
+        when (tomaActual) {
+            1 -> {
+                fecha = ControlHorario.obtenerFechaActual()
+                franja = ControlHorario.obtenerFranjaActual()
+                hora1 = horaToma; sis1 = sistolica; dia1 = diastolica; pulso1= pulso
+            }
+
+                2 -> { sis2 = sistolica; dia2 = diastolica; pulso2 = pulso }
+                3 -> { sis3 = sistolica; dia3 = diastolica; pulso3 = pulso }
+
+        }
+            if (tomaActual < 3) iniciarTemporizador()
+                else {
+                    mostrarSeleccionEmocion = true
+                    viewModelScope.launch { prefs.guardarTomaActual (4)}
+                }
+        }
+
 
     /**
      * Activa la cuenta atrás obligatoria de 2 minutos entre tomas.
      * Al finalizar, avanza automáticamente a la siguiente toma.
      */
     fun iniciarTemporizador() {
-        esperandoTiempo = true
-        segundosRestantes = 120 //120 segundos
+        val timestampFin = System.currentTimeMillis() + 120_000L
+        viewModelScope.launch {
+            prefs.guardarTimestampFinEspera(timestampFin)
+            prefs.guardarTomaActual(tomaActual)
+        }
+        reanudarTemporizador (120_000L)
+    }
 
-        //Pátron corrutina en segundo plano para no bloquear la interfaz mientas se cuenta.
+    private fun reanudarTemporizador(restanteMS: Long) {
+        esperandoTiempo = true
+        segundosRestantes = (restanteMS / 1000).toInt()
         viewModelScope.launch {
             while (segundosRestantes > 0) {
-                delay(1000) //Pausa de 1 segundo en cada interación
+                delay (1000)
                 segundosRestantes--
             }
-            // Cambia el estado a falso porque la cuenta atrás de 2 minutos ya ha terminado
             esperandoTiempo = false
-            tomaActual++ //Suma 1 y avanza automaticamente a la siguiente toma.
+            tomaActual++
+            prefs.guardarTomaActual(tomaActual)
         }
     }
 
@@ -67,16 +133,21 @@ class TomaTensionViewModel (private val dao: TomaTensionDAO) : ViewModel() {
      *
      * @param medicion Registro completo de la sesión, con las 3 tomas incluidas.
      */
-    fun guardarMedicion(medicion: TomaTension) {
+    fun guardarMedicion(emocion: Emocion) {
+        val franjaSession = franja ?: return
+        val medicion = TomaTension(
+            fecha=fecha,
+            franja=franjaSession,
+            emocion=emocion,
+            hora1 = hora1, sis1 = sis1, dia1 = dia1, pulso1 = pulso1,
+            sis2 = sis2, dia2 = dia2, pulso2 = pulso2,
+            sis3 = sis3, dia3 = dia3, pulso3 = pulso3
+        )
         viewModelScope.launch {
-            // Llama a la base de datos y le ordena insertar la fila con todos los datos recogidos
             dao.insertarToma(medicion)
-            /**
-             * La sesión actual (3 tomas) ya está guardada por completo. Se reinicia a 1 para que
-             * si el usuario inicia otra sesión más tarde, la app empiece d enuevo por la toma 1
-             * en esa nueva sesión.
-             */
-            tomaActual = 1
+            prefs.limpiarSesion()
+            tomaActual=1
+            mostrarSeleccionEmocion=false
         }
     }
 }
