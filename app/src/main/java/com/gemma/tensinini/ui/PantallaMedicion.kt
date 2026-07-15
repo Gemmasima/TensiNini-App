@@ -20,16 +20,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import com.gemma.tensinini.data.SesionMedicionPreferences
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 
 /**
@@ -39,6 +46,10 @@ import androidx.compose.ui.unit.sp
  * en la sesión actual, y en la parte inferior el formulario para introducir
  * los valores de la toma en curso (sistólica, diastólica y pulso).
  *
+ * Entre tomas se muestra un temporizador de 2 minutos (persisitido en
+ * SesionMedicionPreferences para sobrevivir al cierre de la app) y tras
+ * la tecera toma se muestra la pantalla de seleccion de estado emocional.
+ *
  * @param onSesionCompletada Callback que se ejecuta cuando el paciente ha completado
  * las 3 tomas y seleccionado su estado emocional.
  */
@@ -46,11 +57,54 @@ import androidx.compose.ui.unit.sp
 fun PantallaMedicion (
     onSessioCompletada: () -> Unit ={}
 ) {
+
+    val context = LocalContext.current
+    val prefs = remember { SesionMedicionPreferences(context) }
+    val scope = rememberCoroutineScope ()
+
     val tomasRegistradas = remember {mutableStateOf(listOf<TomaResumen>())}
     var tomaActual by remember {mutableStateOf(1)}
     var sistolica by remember {mutableStateOf("")}
     var diastolica by remember {mutableStateOf("")}
     var pulso by remember {mutableStateOf("")}
+
+    var enEspera by remember { mutableStateOf(false) }
+    var segundosRestantes by remember { mutableStateOf(0) }
+    var mostrarSeleccionEmocion by remember { mutableStateOf(false) }
+
+    //Restaura el estado de la sesión al abrir/reabrir la pantalla
+    LaunchedEffect(Unit) {
+        val tomaGuardada = prefs.tomaActual.first()
+        val timestampFin = prefs.timestampFinEspera.first()
+
+        when {
+            tomaGuardada in 1..3 -> {
+                tomaActual=tomaGuardada
+                if (timestampFin > System.currentTimeMillis()) {
+                    enEspera=true
+                }
+            }
+            tomaGuardada == 4 -> {
+                mostrarSeleccionEmocion = true
+            }
+        }
+    }
+
+    // Cuenta atras del temporizador de espera entre tomas
+    LaunchedEffect(enEspera) {
+        if (enEspera) {
+            while (true) {
+                val timestampFin = prefs.timestampFinEspera.first()
+                    val restanteMs = timestampFin - System.currentTimeMillis()
+                    if (restanteMs <= 0) {
+                        enEspera = false
+                        break
+                    }
+                    segundosRestantes = (restanteMs / 1000).toInt()
+                    delay(1000)
+                }
+        }
+    }
 
     Column (
         modifier= Modifier
