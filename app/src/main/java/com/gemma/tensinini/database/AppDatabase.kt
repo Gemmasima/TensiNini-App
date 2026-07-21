@@ -15,4 +15,25 @@ abstract class AppDatabase : RoomDatabase () {
 
     //Conecta la BD con el DAO para poder ejecutar las consultas
     abstract fun tomaTensionDAO(): TomaTensionDAO
+
+    companion object {
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        /**
+        * Devuelve la instancia única de la base de datos, creándola la
+        * primera vez que se solicita (patrón singleton).
+        */
+        fun getDatabase(context: android.content.Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = androidx.room.Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "tensinini_database"
+                ).build()
+                INSTANCE = instance
+                instance
+                }
+            }
+        }
 }

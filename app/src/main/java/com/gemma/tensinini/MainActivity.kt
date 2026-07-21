@@ -13,11 +13,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.gemma.tensinini.data.SesionMedicionPreferences
+import com.gemma.tensinini.database.AppDatabase
 import com.gemma.tensinini.ui.theme.TensininiTheme
+import com.gemma.tensinini.ui.viewmodel.TomaTensionViewModel
 import com.gemma.tensinini.util.ControlHorario
+
+
 
 /**
  * Actividad principal de la aplicación. Punto de entrada único que aloja
@@ -70,9 +79,15 @@ fun AppNavigation() {
         }
 
         composable(RUTA_MEDICION) {
-            com.gemma.tensinini.ui.PantallaMedicion()
+            val context = LocalContext.current
+            val dao = remember { AppDatabase.getDatabase(context)}.tomaTensionDAO()
+            val prefs = remember { SesionMedicionPreferences(context) }
+            val factory = remember { TomaTensionViewModelFactory(dao, prefs) }
+            val viewModel: TomaTensionViewModel = viewModel(factory=factory)
+
+            com.gemma.tensinini.ui.PantallaMedicion(viewModel = viewModel)
         }
-    }
+        }
 
     if (mostrarDialogoHorario) {
         DialogoHorarioInvalido(
@@ -134,3 +149,18 @@ private const val RUTA_INICIO = "inicio"
 
 /** Ruta de navegación para la pantalla de medición. */
 private const val RUTA_MEDICION = "medicion"
+
+/**
+ * Fábrica necesaria para instanciar TomaTensionViewModel, ya que este recibe
+ * el DAO y las preferencias de sesión por constructor y Android no sabe
+ * crearlo automáticamente sin esta clase intermedia.
+ */
+class TomaTensionViewModelFactory(
+    private val dao: com.gemma.tensinini.dao.TomaTensionDAO,
+    private val prefs: SesionMedicionPreferences
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        @Suppress("UNCHECKED_CAST")
+        return TomaTensionViewModel(dao, prefs) as T
+    }
+}
