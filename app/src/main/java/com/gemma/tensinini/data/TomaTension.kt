@@ -53,6 +53,7 @@ data class TomaTension(
     val fecha: String,
     val franja: Franja,
     val emocion: Emocion,
+    val sincronizado: Boolean=false,
 
     //Toma 1 (primera medición de la sesión)
     val hora1: String,

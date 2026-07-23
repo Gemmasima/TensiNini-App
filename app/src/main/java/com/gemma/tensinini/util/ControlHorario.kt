@@ -71,9 +71,6 @@ object ControlHorario {
      * Debe comprobarse antes de registrar la toma1 de una nueva sesión.
      */
     fun esHorarioValido(): Boolean {
-        return true // TEMPORAL: para pruebas. Revertir antes de publicar.
+        return obtenerFranjaActual() !=null
     }
-    //fun esHorarioValido(): Boolean {
-     //   return obtenerFranjaActual() !=null
-    //}
 }
