@@ -69,4 +69,9 @@ dependencies {
     implementation ("androidx.datastore:datastore-preferences:1.1.1")
     //Navigation Compose para gestionar la navegación entre pantallas
     implementation("androidx.navigation:navigation-compose:2.7.7")
+    // Retrofit: librería para hacer llamadas HTTP al backend Spring Boot
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    // Convierte automáticamente JSON <-> objetos Kotlin (necesario para que
+    // Retrofit entienda las respuestas del backend)
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
 }

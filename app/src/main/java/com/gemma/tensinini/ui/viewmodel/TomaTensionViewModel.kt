@@ -9,7 +9,9 @@ import com.gemma.tensinini.data.TomaTension
 import com.gemma.tensinini.dao.TomaTensionDAO
 import com.gemma.tensinini.data.Emocion
 import com.gemma.tensinini.data.Franja
+import com.gemma.tensinini.data.MedicionDto
 import com.gemma.tensinini.data.SesionMedicionPreferences
+import com.gemma.tensinini.network.RetrofitClient
 import com.gemma.tensinini.util.ControlHorario
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -144,10 +146,50 @@ class TomaTensionViewModel (
             sis3 = sis3, dia3 = dia3, pulso3 = pulso3
         )
         viewModelScope.launch {
+            // primero se guarda en el movil
             dao.insertarToma(medicion)
+
+            //Tambien se manda al backend, si hay internet.
+            intentarSincronizar(medicion)
             prefs.limpiarSesion()
             tomaActual=1
             mostrarSeleccionEmocion=false
+        }
+    }
+
+    /**Manda la medicion al backend. Si falla, no pasa nada:
+     * el dato ya está gaurdado en el movil.
+     */
+    private suspend fun intentarSincronizar(medicion: TomaTension) {
+        try {
+            // Traduccion de la medición al formato que espera el backend
+            val dto = MedicionDto(
+                fecha = medicion.fecha,
+                franja = medicion.franja.name,
+                emocion = medicion.emocion.name,
+                hora1 = medicion.hora1,
+                sis1 = medicion.sis1,
+                dia1 = medicion.dia1,
+                pulso1 = medicion.pulso1,
+                sis2 = medicion.sis2,
+                dia2 = medicion.dia2,
+                pulso2 = medicion.pulso2,
+                sis3 = medicion.sis3,
+                dia3 = medicion.dia3,
+                pulso3 = medicion.pulso3
+            )
+
+            val respuesta = RetrofitClient.apiService.guardarMedicion(dto)
+
+            android.util.Log.d("TensiNini_Sync", "Respuesta del backend: ${respuesta.code()}")
+
+
+            if (respuesta.isSuccessful) {
+            // TODO: marcar sincronizado = true
+            }
+        } catch (e: Exception) {
+            // Sin internet o backend apagado: no pasa nada, se reintenta luego
+            android.util.Log.e("TensiNini_Sync", "Error al sincronizar con el backend", e)
         }
     }
 }
