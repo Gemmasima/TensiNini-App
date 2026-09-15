@@ -26,4 +26,11 @@ interface TomaTensionDAO {
      */
     @Query("SELECT * FROM mediciones ORDER BY fecha DESC")
     suspend fun obtenerTodasLasTomas(): List<TomaTension>
+
+    /**
+    * Actualiza una medición ya existente (identificada por su id)
+    * con valores nuevos, si fuera necesario.
+    */
+    @androidx.room.Update
+    suspend fun actualizarToma(toma: TomaTension)
 }

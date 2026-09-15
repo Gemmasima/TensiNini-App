@@ -13,13 +13,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.gemma.tensinini.dao.TomaTensionDAO
 import com.gemma.tensinini.data.SesionMedicionPreferences
 import com.gemma.tensinini.database.AppDatabase
 import com.gemma.tensinini.ui.theme.TensininiTheme
@@ -74,7 +77,8 @@ fun AppNavigation() {
                     } else {
                         mostrarDialogoHorario = true
                     }
-                }
+                },
+                onVerHistorial = {navController.navigate(RUTA_HISTORIAL)}
             )
         }
 
@@ -87,6 +91,12 @@ fun AppNavigation() {
 
             com.gemma.tensinini.ui.PantallaMedicion(viewModel = viewModel)
         }
+
+        composable(RUTA_HISTORIAL) {
+            val context=LocalContext.current
+            val dao = remember { AppDatabase.getDatabase(context).tomaTensionDAO() }
+            com.gemma.tensinini.ui.PantallaHistorial(dao=dao)
+        }
         }
 
     if (mostrarDialogoHorario) {
@@ -96,6 +106,11 @@ fun AppNavigation() {
     }
 }
 
+@Composable
+fun PantallaHistorial(dao: TomaTensionDAO) {
+    TODO("Not yet implemented")
+}
+
 /**
  * Pantalla de inicio con el botón para comenzar una sesión de medición.
  *
@@ -103,13 +118,23 @@ fun AppNavigation() {
  *                          el botón de iniciar medición.
  */
 @Composable
-fun PantallaInicio(onIniciarMedicion: () -> Unit) {
+fun PantallaInicio(onIniciarMedicion: () -> Unit, onVerHistorial: () -> Unit) {
     androidx.compose.foundation.layout.Box(
         modifier = androidx.compose.ui.Modifier.fillMaxSize(),
         contentAlignment = androidx.compose.ui.Alignment.Center
     ) {
-        androidx.compose.material3.Button(onClick = onIniciarMedicion) {
-            Text(text = "Iniciar mesura")
+        androidx.compose.foundation.layout.Column(
+            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+        ) {
+            androidx.compose.material3.Button(onClick = onIniciarMedicion) {
+                Text(text = "Iniciar mesura")
+            }
+            androidx.compose.foundation.layout.Spacer(
+            modifier = androidx.compose.ui.Modifier.height(12.dp)
+      )
+            androidx.compose.material3.OutlinedButton(onClick = onVerHistorial) {
+             Text(text = "Veure historial")
+            }
         }
     }
 }
@@ -149,6 +174,9 @@ private const val RUTA_INICIO = "inicio"
 
 /** Ruta de navegación para la pantalla de medición. */
 private const val RUTA_MEDICION = "medicion"
+
+/** Ruta de navegación para la pantalla de historial de mediciones. */
+private const val RUTA_HISTORIAL = "historial"
 
 /**
  * Fábrica necesaria para instanciar TomaTensionViewModel, ya que este recibe

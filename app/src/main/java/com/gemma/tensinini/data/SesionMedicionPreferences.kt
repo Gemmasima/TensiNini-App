@@ -6,8 +6,10 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 /**
@@ -40,6 +42,9 @@ class SesionMedicionPreferences(private val context: Context) {
 
         /** Clave para almacenar el timestamp de fin de la espera entre tomas (en ms). */
         private val KEY_TIMESTAMP_FIN_ESPERA = longPreferencesKey("timestamp_fin_espera")
+
+        /** Clave para el identificador único del paciente/dispositivo, sin login. */
+        private val KEY_PACIENTE_ID = stringPreferencesKey("paciente_id")
     }
 
     /**
@@ -81,6 +86,24 @@ class SesionMedicionPreferences(private val context: Context) {
             preferences[KEY_TIMESTAMP_FIN_ESPERA] = timestampMs
         }
     }
+
+    /**
+     * Devuelve el ID único de este paciente/dispositivo, usado
+     * para que el backend sepa de quién es cada medición, sin necesidad
+     * de login. Si es la primera vez que se abre la app, genera un UUID
+     * nuevo y lo guarda; las siguientes veces devuelve siempre el mismo.
+     */
+    suspend fun obtenerOCrearPacienteId(): String {
+        val idExistente = context.dataStore.data.map { it[KEY_PACIENTE_ID] }.first()
+        if (idExistente != null) return idExistente
+
+        val nuevoId = java.util.UUID.randomUUID().toString()
+        context.dataStore.edit { preferences ->
+            preferences[KEY_PACIENTE_ID] = nuevoId
+        }
+        return nuevoId
+    }
+
 
     /**
      * Elimina todos los datos de la sesión en curso de DataStore.

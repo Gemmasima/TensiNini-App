@@ -7,6 +7,7 @@ package com.gemma.tensinini.data
  * JSON.
  */
 data class MedicionDto (
+    val pacienteId: String,
     val fecha: String,   // Formato "yyyy-MM-dd"
     val franja: String,  // "MANANA" o "NOCHE"
     val emocion: String, // "TRANQUILA", "NERVIOSA" o "ENFADADA"

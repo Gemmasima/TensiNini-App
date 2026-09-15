@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Permite HTTP sin cifrar solo hacia 10.0.2.2 (backend local en desarrollo).
+
+  TEMPORAL. Antes de publicar en Google Play:
+  1. Desplegar el backend en un servidor real con HTTPS.
+  2. Cambiar RetrofitClient.kt a "https://...".
+  3. Borrar este archivo y su referencia en AndroidManifest.xml.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>

@@ -129,6 +129,12 @@ class TomaTensionViewModel (
         }
     }
 
+    // SOLO PARA PRUEBAS - Boton pasar tiempo
+    fun saltarTemporizador() {
+        segundosRestantes = 0
+    }
+
+
     /**
      * Guarda en la DB el registro completo de las 3 tomas y resetea el contador
      * para dejar la app lista para la siguiente sesión.
@@ -164,6 +170,7 @@ class TomaTensionViewModel (
         try {
             // Traduccion de la medición al formato que espera el backend
             val dto = MedicionDto(
+                pacienteId = prefs.obtenerOCrearPacienteId(),
                 fecha = medicion.fecha,
                 franja = medicion.franja.name,
                 emocion = medicion.emocion.name,

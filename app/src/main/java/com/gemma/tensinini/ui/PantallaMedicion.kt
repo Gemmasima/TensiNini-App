@@ -91,7 +91,10 @@ fun PantallaMedicion(
                 )
             }
             viewModel.esperandoTiempo -> {
-                TemporitzadorEspera(segundosRestantes = viewModel.segundosRestantes)
+                TemporizadorEspera(
+                    segundosRestantes = viewModel.segundosRestantes,
+                    onSaltar={viewModel.saltarTemporizador()}
+                )
             }
             viewModel.tomaActual <= 3 -> {
                 FormularioToma(
@@ -298,7 +301,7 @@ fun FormularioToma(
  * @param segundosRestantes Segundos que quedan hasta poder realizar la siguiente toma.
  */
 @Composable
-fun TemporitzadorEspera(segundosRestantes: Int) {
+fun TemporizadorEspera(segundosRestantes: Int, onSaltar: () -> Unit) {
     val minutos = segundosRestantes / 60
     val segundos = segundosRestantes % 60
 
@@ -320,6 +323,10 @@ fun TemporitzadorEspera(segundosRestantes: Int) {
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold
             )
+            Spacer (modifier= Modifier.height(12.dp))
+            Button(onClick = onSaltar) {
+                Text("Salta")
+            }
         }
     }
 }
