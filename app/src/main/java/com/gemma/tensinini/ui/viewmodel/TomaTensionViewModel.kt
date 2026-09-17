@@ -1,5 +1,6 @@
 package com.gemma.tensinini.ui.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -153,10 +154,11 @@ class TomaTensionViewModel (
         )
         viewModelScope.launch {
             // primero se guarda en el movil
-            dao.insertarToma(medicion)
+            val idGenerado = dao.insertarToma(medicion)
 
             //Tambien se manda al backend, si hay internet.
-            intentarSincronizar(medicion)
+            intentarSincronizar(medicion, idGenerado)
+            
             prefs.limpiarSesion()
             tomaActual=1
             mostrarSeleccionEmocion=false
@@ -166,7 +168,7 @@ class TomaTensionViewModel (
     /**Manda la medicion al backend. Si falla, no pasa nada:
      * el dato ya está gaurdado en el movil.
      */
-    private suspend fun intentarSincronizar(medicion: TomaTension) {
+    private suspend fun intentarSincronizar(medicion: TomaTension, id: Long) {
         try {
             // Traduccion de la medición al formato que espera el backend
             val dto = MedicionDto(
@@ -188,15 +190,16 @@ class TomaTensionViewModel (
 
             val respuesta = RetrofitClient.apiService.guardarMedicion(dto)
 
-            android.util.Log.d("TensiNini_Sync", "Respuesta del backend: ${respuesta.code()}")
+            Log.d("TensiNini_Sync", "Respuesta del backend: ${respuesta.code()}")
 
 
             if (respuesta.isSuccessful) {
             // TODO: marcar sincronizado = true
+                dao.marcarSincronizado(id.toInt(), true)
             }
         } catch (e: Exception) {
             // Sin internet o backend apagado: no pasa nada, se reintenta luego
-            android.util.Log.e("TensiNini_Sync", "Error al sincronizar con el backend", e)
+            Log.e("TensiNini_Sync", "Error al sincronizar con el backend", e)
         }
     }
 }

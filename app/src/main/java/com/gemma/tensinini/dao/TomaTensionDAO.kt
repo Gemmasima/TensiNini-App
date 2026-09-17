@@ -16,9 +16,11 @@ interface TomaTensionDAO {
      * Inserta una nueva medición en la base de datos.
      * "suspend" hace que la función corra en segundo plano,
      * para no congelar la pantalla de la app.
+     * Devuelve el id autogenerado por Room para esta fila, necesario
+     * para poder marcarla luego como sincronizada.
      */
     @Insert
-    suspend fun insertarToma(toma: TomaTension)
+    suspend fun insertarToma(toma: TomaTension): Long
 
     /**
      * Devuelve todas las mediciones guardadas, ordenadas de más reciente
@@ -33,4 +35,10 @@ interface TomaTensionDAO {
     */
     @androidx.room.Update
     suspend fun actualizarToma(toma: TomaTension)
+
+    /** Marcar una medición como sincronizada con el backend, identificándola
+     * por su id. Solo actualiza ese campo, sin tocar el resto de valores.
+     */
+    @Query("UPDATE mediciones SET sincronizado = :sincronizado WHERE id= :id")
+    suspend fun marcarSincronizado(id: Int, sincronizado: Boolean)
 }
